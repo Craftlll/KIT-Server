@@ -152,8 +152,8 @@ process_gene_plots <- function(ctx, gene) {
 
         # 6. Return Absolute Path
         if (file.exists(cache_path)) {
-            # Return absolute path
-            results[[type]] <- normalizePath(cache_path)
+            # Add to results array (not named list)
+            results <- c(results, normalizePath(cache_path))
         }
     }
 
@@ -235,13 +235,13 @@ get_base_plots_paths <- function(ctx) {
         }
     }
 
-    # Collect paths
+    # Collect paths as array
     for (name in names(files)) {
         fname <- files[[name]]
         fpath <- file.path(ctx$base, fname)
 
         if (file.exists(fpath)) {
-            results[[name]] <- normalizePath(fpath)
+            results <- c(results, normalizePath(fpath))
         }
     }
     return(results)

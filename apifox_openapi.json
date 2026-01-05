@@ -261,50 +261,29 @@
                                             "example": "GAPDH"
                                         },
                                         "plots": {
-                                            "type": "object",
-                                            "properties": {
-                                                "feature": {
-                                                    "type": "string",
-                                                    "example": "/abs/path/to/feature.png"
-                                                },
-                                                "dot_anno": {
-                                                    "type": "string",
-                                                    "example": "/abs/path/to/dot_anno.png"
-                                                },
-                                                "heat_anno": {
-                                                    "type": "string",
-                                                    "example": "/abs/path/to/heat_anno.png"
-                                                },
-                                                "dot_cluster": {
-                                                    "type": "string",
-                                                    "example": "/abs/path/to/dot_cluster.png"
-                                                },
-                                                "heat_cluster": {
-                                                    "type": "string",
-                                                    "example": "/abs/path/to/heat_cluster.png"
-                                                }
-                                            }
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "/abs/path/to/feature.png",
+                                                "/abs/path/to/dot_anno.png",
+                                                "/abs/path/to/heat_anno.png",
+                                                "/abs/path/to/dot_cluster.png",
+                                                "/abs/path/to/heat_cluster.png"
+                                            ]
                                         },
                                         "base_plots": {
-                                            "type": "object",
-                                            "properties": {
-                                                "uas": {
-                                                    "type": "string",
-                                                    "example": "/abs/path/to/uas.png"
-                                                },
-                                                "ucd45": {
-                                                    "type": "string",
-                                                    "example": "/abs/path/to/ucd45.png"
-                                                },
-                                                "ucta_withanno": {
-                                                    "type": "string",
-                                                    "example": "/abs/path/to/ucta_withanno.png"
-                                                },
-                                                "ucta_noanno": {
-                                                    "type": "string",
-                                                    "example": "/abs/path/to/ucta_noanno.png"
-                                                }
-                                            }
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "/abs/path/to/uas.png",
+                                                "/abs/path/to/ucd45.png",
+                                                "/abs/path/to/ucta_withanno.png",
+                                                "/abs/path/to/ucta_noanno.png"
+                                            ]
                                         }
                                     }
                                 }
