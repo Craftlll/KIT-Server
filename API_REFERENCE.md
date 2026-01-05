@@ -98,15 +98,26 @@
 *   **Parameters**:
     *   `id` (Required): 数据集 ID
     *   `gene` (Required): 基因名称
-*   **Response**: JSON 包含图片生成路径
+*   **Response**: JSON (包含所有相关图片的绝对路径)
     ```json
     {
-      "gene_plots": {
-        "feature": "/Users/craft/Desktop/data/NO1/lite/cache/Gapdh_feature.png"
+      "gene": "GAPDH",
+      "plots": {
+        "feature": "/Users/craft/Desktop/KIT-Rserve/data/NO1/lite/cache/GAPDH/feature.png",
+        "dot_anno": "/Users/craft/Desktop/KIT-Rserve/data/NO1/lite/cache/GAPDH/dot_anno.png",
+        "heat_anno": "/Users/craft/Desktop/KIT-Rserve/data/NO1/lite/cache/GAPDH/heat_anno.png",
+        "dot_cluster": "/Users/craft/Desktop/KIT-Rserve/data/NO1/lite/cache/GAPDH/dot_cluster.png",
+        "heat_cluster": "/Users/craft/Desktop/KIT-Rserve/data/NO1/lite/cache/GAPDH/heat_cluster.png"
+      },
+      "base_plots": {
+        "uas": "/Users/craft/Desktop/KIT-Rserve/data/NO1/lite/base/uas.png",
+        "ucd45": "/Users/craft/Desktop/KIT-Rserve/data/NO1/lite/base/ucd45.png",
+        "ucta_withanno": "/Users/craft/Desktop/KIT-Rserve/data/NO1/lite/base/ucta_withanno.png",
+        "ucta_noanno": "/Users/craft/Desktop/KIT-Rserve/data/NO1/lite/base/ucta_noanno.png"
       }
     }
     ```
-    *注意*: 目前返回的是服务器本地绝对路径。在开发 Web UI 时，可能需要通过通过静态文件服务映射该目录，或修改 API 直接返回图片流。
+    *注意*: 返回的是服务器本地绝对路径。客户端可以直接读取这些文件或将其作为静态资源处理。
 
 ---
 

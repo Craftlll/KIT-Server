@@ -58,14 +58,39 @@ init_registry <- function(config_path = "config.yaml") {
                 # Ensure cache dir exists
                 if (!dir.exists(cache_dir)) dir.create(cache_dir, recursive = TRUE, showWarnings = FALSE)
 
-                DATA_REGISTRY[[id]] <<- list(
-                    name = paste("Dataset", id), # Default name
-                    meta = meta_df,
-                    h5 = h5_file,
-                    cache = cache_dir,
-                    base = base_dir
-                )
-                flog.info(paste("Loaded:", id, "| Rows:", nrow(meta_df)))
+                if (file.exists(meta_file)) {
+                    # Read header only first to check columns
+                    meta_cols <- names(read.csv(meta_file, nrows = 1))
+
+                    has_anno <- "cell_type" %in% meta_cols
+                    has_cluster <- "seurat_clusters" %in% meta_cols
+
+                    caps <- list(
+                        has_anno = has_anno,
+                        has_cluster = has_cluster
+                    )
+
+                    # For row count and plotting, read full DF
+                    meta_df <- read.csv(meta_file, stringsAsFactors = FALSE)
+                    n_cells <- nrow(meta_df)
+
+                    DATA_REGISTRY[[id]] <<- list(
+                        name = paste("Dataset", id),
+                        data_root = file.path(data_root, id),
+                        lite_path = lite_path,
+                        meta_path = meta_file,
+                        meta = meta_df, # IMPORTANT: Must load DF
+                        h5_path = h5_file,
+                        cache = cache_dir,
+                        base = base_dir,
+                        n_cells = n_cells,
+                        capabilities = caps
+                    )
+
+                    flog.info(paste("Loaded:", id, "| Rows:", n_cells, "| Caps:", paste(names(caps)[unlist(caps)], collapse = ",")))
+                } else {
+                    flog.warn(paste("Skipping", id, "- Metadata missing"))
+                }
             }
         } else {
             # Silent skip for non-dataset directories to avoid log spam

@@ -84,28 +84,41 @@ function(id, res) {
     }
 }
 
-#* Get Gene Expression Plot
+#* Get Gene Expression Plots (Batch)
 #* @param id The Dataset ID
 #* @param gene The Gene Name
-#* @param type Plot type (feature, dot_anno, dot_cluster, heat_anno, heat_cluster). Default: feature
-#* @serializer contentType list(type="image/png")
+#* @serializer json
 #* @get /plots/all
-function(id, gene, type = "feature", res) {
+function(id, gene, res) {
     ctx <- get_dataset_context(id)
     if (is.null(ctx)) {
         res$status <- 404
         return(list(error = "Dataset ID not found"))
     }
 
-    # Generate Plot
-    # The utils_plot function now handles 'type'
-    plot_path <- generate_plot(ctx, gene, plot_type = type)
-
-    if (!is.null(plot_path) && file.exists(plot_path)) {
-        return(readBin(plot_path, "raw", n = file.info(plot_path)$size))
-    } else {
+    # Helper: Check if gene exists first
+    real_gene <- check_gene_exists(ctx, gene)
+    if (is.null(real_gene)) {
         res$status <- 440
-        return(list(error = paste("Gene", gene, "not found or plot generation failed for type", type)))
+        return(list(error = paste("Gene", gene, "not found")))
+    }
+
+    # Batch Generate & Return Paths
+    # This automatically handles capability detection (anno/cluster/etc.)
+    gene_plots <- process_gene_plots(ctx, gene)
+    base_plots <- get_base_plots_paths(ctx)
+
+    if (!is.null(gene_plots) && length(gene_plots) > 0) {
+        # Return list of absolute file paths
+        # Structure: { gene: "...", plots: { ... }, base_plots: { ... } }
+        return(list(
+            gene = real_gene,
+            plots = gene_plots,
+            base_plots = base_plots
+        ))
+    } else {
+        res$status <- 500
+        return(list(error = "Plot generation failed"))
     }
 }
 
