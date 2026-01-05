@@ -2,8 +2,8 @@
     "openapi": "3.0.0",
     "info": {
         "title": "Unified Single-Cell Lite Service",
-        "description": "Unified R Plumber service for single-cell data visualization and querying.",
-        "version": "1.0.0"
+        "description": "Unified R Plumber service. Returns absolute paths for plots (clean JSON).",
+        "version": "1.1.0"
     },
     "servers": [
         {
@@ -245,17 +245,6 @@
                         "schema": {
                             "type": "string",
                             "example": "Gapdh"
-                        }
-                    },
-                    {
-                        "name": "type",
-                        "in": "query",
-                        "required": false,
-                        "description": "Plot Type: feature | dot_anno | dot_cluster | heat_anno | heat_cluster",
-                        "schema": {
-                            "type": "string",
-                            "default": "feature",
-                            "example": "feature"
                         }
                     }
                 ],

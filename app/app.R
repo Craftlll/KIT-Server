@@ -25,12 +25,14 @@ function(req) {
 }
 
 #* Check Health
+#* @serializer json list(auto_unbox=TRUE)
 #* @get /health
 function() {
-    list(status = "UP", mode = "Unified")
+    list(status = "STARTED", mode = "Unified")
 }
 
 #* List available datasets
+#* @serializer json list(auto_unbox=TRUE)
 #* @get /datasets
 function() {
     ids <- names(DATA_REGISTRY)
@@ -41,6 +43,7 @@ function() {
 #* Check if a gene exists in a dataset
 #* @param id The Dataset ID (e.g. NO1)
 #* @param gene The Gene Name
+#* @serializer json list(auto_unbox=TRUE)
 #* @get /genes/check
 function(id, gene, res) {
     ctx <- get_dataset_context(id)
@@ -87,7 +90,7 @@ function(id, res) {
 #* Get Gene Expression Plots (Batch)
 #* @param id The Dataset ID
 #* @param gene The Gene Name
-#* @serializer json
+#* @serializer json list(auto_unbox=TRUE)
 #* @get /plots/all
 function(id, gene, res) {
     ctx <- get_dataset_context(id)
@@ -124,6 +127,7 @@ function(id, gene, res) {
 
 #* Get Available Plot Types
 #* @param id The Dataset ID
+#* @serializer json list(auto_unbox=TRUE)
 #* @get /plots/types
 function(id, res) {
     ctx <- get_dataset_context(id)
