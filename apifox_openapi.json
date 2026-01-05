@@ -1,0 +1,281 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Unified Single-Cell Lite Service",
+        "description": "Unified R Plumber service for single-cell data visualization and querying.",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000",
+            "description": "Local Development Server"
+        }
+    ],
+    "paths": {
+        "/health": {
+            "get": {
+                "summary": "Check System Health",
+                "operationId": "getHealth",
+                "responses": {
+                    "200": {
+                        "description": "Service is UP",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "UP"
+                                        },
+                                        "mode": {
+                                            "type": "string",
+                                            "example": "Unified"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/datasets": {
+            "get": {
+                "summary": "List Available Datasets",
+                "operationId": "listDatasets",
+                "responses": {
+                    "200": {
+                        "description": "List of datasets",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "datasets": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "example": "NO1"
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Dataset NO1"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/genes/check": {
+            "get": {
+                "summary": "Check Gene Existence",
+                "operationId": "checkGene",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "required": true,
+                        "description": "Dataset ID",
+                        "schema": {
+                            "type": "string",
+                            "example": "NO1"
+                        }
+                    },
+                    {
+                        "name": "gene",
+                        "in": "query",
+                        "required": true,
+                        "description": "Gene Name (Case insensitive)",
+                        "schema": {
+                            "type": "string",
+                            "example": "GAPDH"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Gene Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "found": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "gene": {
+                                            "type": "string",
+                                            "example": "Gapdh",
+                                            "description": "Standardized gene name"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Dataset Not Found"
+                    },
+                    "440": {
+                        "description": "Gene Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Gene GAPDH not found"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/plots/base": {
+            "get": {
+                "summary": "Get Base UMAP Plot",
+                "operationId": "getBasePlot",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "required": true,
+                        "description": "Dataset ID",
+                        "schema": {
+                            "type": "string",
+                            "example": "NO1"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "PNG Image",
+                        "content": {
+                            "image/png": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
+        "/plots/types": {
+            "get": {
+                "summary": "Get Available Plot Types",
+                "operationId": "getPlotTypes",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "required": true,
+                        "description": "Dataset ID",
+                        "schema": {
+                            "type": "string",
+                            "example": "NO1"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of available plot types",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "types": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string",
+                                                "example": "feature"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Dataset Not Found"
+                    }
+                }
+            }
+        },
+        "/plots/all": {
+            "get": {
+                "summary": "Get Gene Expression Plot",
+                "operationId": "getGenePlot",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "required": true,
+                        "description": "Dataset ID",
+                        "schema": {
+                            "type": "string",
+                            "example": "NO1"
+                        }
+                    },
+                    {
+                        "name": "gene",
+                        "in": "query",
+                        "required": true,
+                        "description": "Gene Name",
+                        "schema": {
+                            "type": "string",
+                            "example": "Gapdh"
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "required": false,
+                        "description": "Plot Type: feature | dot_anno | dot_cluster | heat_anno | heat_cluster",
+                        "schema": {
+                            "type": "string",
+                            "default": "feature",
+                            "example": "feature"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Gene Expression Plot (Image)",
+                        "content": {
+                            "image/png": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "440": {
+                        "description": "Gene Not Found or Plot Failed"
+                    }
+                }
+            }
+        }
+    }
+}

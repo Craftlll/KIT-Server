@@ -1,0 +1,9 @@
+logs/
+
+**/lite/
+
+*.png
+*.jpg
+
+.DS_Store
+*.log

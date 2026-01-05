@@ -1,0 +1,4 @@
+# System Configuration
+settings:
+  data_path: "/Users/craft/Desktop/KIT-Rserve/data"
+  port: 8000
