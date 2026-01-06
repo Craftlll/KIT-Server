@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"gateway/internal/config"
+	"gateway/internal/handlers"
 	"gateway/internal/nacos"
 
 	"github.com/gin-gonic/gin"
@@ -109,8 +110,15 @@ func proxyHandler(discovery *nacos.Discovery, cfg *config.Config) gin.HandlerFun
 			req.URL.Scheme = target.Scheme
 			req.URL.Host = target.Host
 
-			// Remove /api/v1 prefix
+			// 获取原始路径
 			path := c.Param("path")
+
+			// 路由转换：将 /plots/anno 和 /plots/noanno 转换为 /plots/all
+			if strings.HasPrefix(path, "/plots/anno") || strings.HasPrefix(path, "/plots/noanno") {
+				// 保留查询参数，但将路径改为 /plots/all
+				path = "/plots/all"
+			}
+
 			req.URL.Path = path
 			req.URL.RawQuery = c.Request.URL.RawQuery
 
@@ -122,12 +130,16 @@ func proxyHandler(discovery *nacos.Discovery, cfg *config.Config) gin.HandlerFun
 			)
 		}
 
-		// Modify response for path conversion
+		// Modify response for filtering plots
+		originalPath := c.Request.URL.Path
 		proxy.ModifyResponse = func(resp *http.Response) error {
-			// Only modify /plots/all responses
-			if strings.Contains(c.Request.URL.Path, "/plots/all") {
-				// TODO: Implement path conversion from absolute paths to /static URLs
-				// This will be done in the next iteration
+			// 根据原始请求路径进行过滤
+			if strings.Contains(originalPath, "/plots/anno") {
+				log.Printf("[Gateway] Filtering anno plots...")
+				return handlers.FilterPlotsAnno(resp)
+			} else if strings.Contains(originalPath, "/plots/noanno") {
+				log.Printf("[Gateway] Filtering noanno plots...")
+				return handlers.FilterPlotsNoAnno(resp)
 			}
 			return nil
 		}

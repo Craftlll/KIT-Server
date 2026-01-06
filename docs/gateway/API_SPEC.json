@@ -233,32 +233,251 @@
                                             "example": "GAPDH",
                                             "description": "基因名称"
                                         },
-                                        "plots": {
-                                            "type": "array",
-                                            "description": "基因特异性图表的绝对路径数组",
-                                            "items": {
-                                                "type": "string"
-                                            },
-                                            "example": [
-                                                "/data/NO1/lite/cache/GAPDH/feature.png",
-                                                "/data/NO1/lite/cache/GAPDH/dot_anno.png",
-                                                "/data/NO1/lite/cache/GAPDH/heat_anno.png",
-                                                "/data/NO1/lite/cache/GAPDH/dot_cluster.png",
-                                                "/data/NO1/lite/cache/GAPDH/heat_cluster.png"
-                                            ]
+                                        "gene_plots": {
+                                            "type": "object",
+                                            "description": "基因特异性图表的路径对象",
+                                            "properties": {
+                                                "feature": {
+                                                    "type": "string",
+                                                    "example": "/data/NO1/lite/cache/GAPDH/feature_plot.png"
+                                                },
+                                                "dot_withanno": {
+                                                    "type": "string",
+                                                    "example": "/data/NO1/lite/cache/GAPDH/dot_plot_withanno.png"
+                                                },
+                                                "dot_noanno": {
+                                                    "type": "string",
+                                                    "example": "/data/NO1/lite/cache/GAPDH/dot_plot_noanno.png"
+                                                },
+                                                "heat_withanno": {
+                                                    "type": "string",
+                                                    "example": "/data/NO1/lite/cache/GAPDH/heat_plot_withanno.png"
+                                                },
+                                                "heat_noanno": {
+                                                    "type": "string",
+                                                    "example": "/data/NO1/lite/cache/GAPDH/heat_plot_noanno.png"
+                                                }
+                                            }
                                         },
                                         "base_plots": {
-                                            "type": "array",
-                                            "description": "基础图表的绝对路径数组",
-                                            "items": {
-                                                "type": "string"
-                                            },
-                                            "example": [
-                                                "/data/NO1/lite/base/uas.png",
-                                                "/data/NO1/lite/base/ucd45.png",
-                                                "/data/NO1/lite/base/ucta_withanno.png",
-                                                "/data/NO1/lite/base/ucta_noanno.png"
-                                            ]
+                                            "type": "object",
+                                            "description": "基础图表的路径对象",
+                                            "properties": {
+                                                "uas": {
+                                                    "type": "string",
+                                                    "example": "/data/NO1/lite/base/uas.png"
+                                                },
+                                                "ucd45": {
+                                                    "type": "string",
+                                                    "example": "/data/NO1/lite/base/ucd45.png"
+                                                },
+                                                "ucta_withanno": {
+                                                    "type": "string",
+                                                    "example": "/data/NO1/lite/base/ucta_withanno.png"
+                                                },
+                                                "ucta_noanno": {
+                                                    "type": "string",
+                                                    "example": "/data/NO1/lite/base/ucta_noanno.png"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "数据集不存在"
+                    },
+                    "440": {
+                        "description": "基因不存在"
+                    },
+                    "500": {
+                        "description": "图表生成失败"
+                    }
+                }
+            }
+        },
+        "/plots/anno": {
+            "get": {
+                "summary": "获取带注释的图表",
+                "description": "生成并返回指定基因的带注释(anno)图表路径。网关层会调用 /plots/all 接口，然后过滤出带 anno 的图像",
+                "tags": [
+                    "图表"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "NO1"
+                        },
+                        "description": "数据集 ID"
+                    },
+                    {
+                        "name": "gene",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "GAPDH"
+                        },
+                        "description": "基因名称"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功生成图表",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "gene": {
+                                            "type": "string",
+                                            "example": "GAPDH",
+                                            "description": "基因名称"
+                                        },
+                                        "gene_plots": {
+                                            "type": "object",
+                                            "description": "基因特异性带注释图表",
+                                            "properties": {
+                                                "dot_withanno": {
+                                                    "type": "string",
+                                                    "example": "/data/NO1/lite/cache/GAPDH/dot_plot_withanno.png"
+                                                },
+                                                "heat_withanno": {
+                                                    "type": "string",
+                                                    "example": "/data/NO1/lite/cache/GAPDH/heat_plot_withanno.png"
+                                                }
+                                            }
+                                        },
+                                        "base_plots": {
+                                            "type": "object",
+                                            "description": "基础带注释图表",
+                                            "properties": {
+                                                "ucta_withanno": {
+                                                    "type": "string",
+                                                    "example": "/data/NO1/lite/base/ucta_withanno.png"
+                                                }
+                                            }
+                                        },
+                                        "filter_type": {
+                                            "type": "string",
+                                            "example": "anno",
+                                            "description": "过滤类型"
+                                        },
+                                        "description": {
+                                            "type": "string",
+                                            "example": "仅包含带注释(anno)的图像",
+                                            "description": "过滤说明"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "数据集不存在"
+                    },
+                    "440": {
+                        "description": "基因不存在"
+                    },
+                    "500": {
+                        "description": "图表生成失败"
+                    }
+                }
+            }
+        },
+        "/plots/noanno": {
+            "get": {
+                "summary": "获取不带注释的图表",
+                "description": "生成并返回指定基因的不带注释(noanno)图表路径。网关层会调用 /plots/all 接口，然后过滤出不带 anno 的图像",
+                "tags": [
+                    "图表"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "NO1"
+                        },
+                        "description": "数据集 ID"
+                    },
+                    {
+                        "name": "gene",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "GAPDH"
+                        },
+                        "description": "基因名称"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功生成图表",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "gene": {
+                                            "type": "string",
+                                            "example": "GAPDH",
+                                            "description": "基因名称"
+                                        },
+                                        "gene_plots": {
+                                            "type": "object",
+                                            "description": "基因特异性不带注释图表",
+                                            "properties": {
+                                                "feature": {
+                                                    "type": "string",
+                                                    "example": "/data/NO1/lite/cache/GAPDH/feature_plot.png"
+                                                },
+                                                "dot_noanno": {
+                                                    "type": "string",
+                                                    "example": "/data/NO1/lite/cache/GAPDH/dot_plot_noanno.png"
+                                                },
+                                                "heat_noanno": {
+                                                    "type": "string",
+                                                    "example": "/data/NO1/lite/cache/GAPDH/heat_plot_noanno.png"
+                                                }
+                                            }
+                                        },
+                                        "base_plots": {
+                                            "type": "object",
+                                            "description": "基础不带注释图表",
+                                            "properties": {
+                                                "uas": {
+                                                    "type": "string",
+                                                    "example": "/data/NO1/lite/base/uas.png"
+                                                },
+                                                "ucd45": {
+                                                    "type": "string",
+                                                    "example": "/data/NO1/lite/base/ucd45.png"
+                                                },
+                                                "ucta_noanno": {
+                                                    "type": "string",
+                                                    "example": "/data/NO1/lite/base/ucta_noanno.png"
+                                                }
+                                            }
+                                        },
+                                        "filter_type": {
+                                            "type": "string",
+                                            "example": "noanno",
+                                            "description": "过滤类型"
+                                        },
+                                        "description": {
+                                            "type": "string",
+                                            "example": "仅包含不带注释(noanno)的图像",
+                                            "description": "过滤说明"
                                         }
                                     }
                                 }
