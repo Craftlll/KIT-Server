@@ -36,10 +36,10 @@ process_gene_plots <- function(ctx, gene) {
     # Map for filenames
     suffix_map <- list(
         "feature"      = "feature.png",
-        "dot_anno"     = "dot_anno.png",
-        "dot_cluster"  = "dot_cluster.png",
-        "heat_anno"    = "heat_anno.png",
-        "heat_cluster" = "heat_cluster.png"
+        "dot_anno"     = "dot_withanno.png",
+        "dot_cluster"  = "dot_noanno.png",
+        "heat_anno"    = "heat_withanno.png",
+        "heat_cluster" = "heat_noanno.png"
     )
 
     # 4. Fetch Data Once (Lazy)

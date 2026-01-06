@@ -59,7 +59,7 @@ services:
       - SERVICE_PORT=8000
       - NACOS_SERVER=http://nacos:8848
     volumes:
-      - ${DATA_PATH}:/data:ro
+      - ${DATA_PATH}:/data
       - ${LOG_DIR:-./logs}/r-service-1:/app/logs
     depends_on:
       nacos:
@@ -86,7 +86,7 @@ services:
       - SERVICE_PORT=8000
       - NACOS_SERVER=http://nacos:8848
     volumes:
-      - ${DATA_PATH}:/data:ro
+      - ${DATA_PATH}:/data
       - ${LOG_DIR:-./logs}/r-service-2:/app/logs
     depends_on:
       nacos:
@@ -113,7 +113,7 @@ services:
       - SERVICE_PORT=8000
       - NACOS_SERVER=http://nacos:8848
     volumes:
-      - ${DATA_PATH}:/data:ro
+      - ${DATA_PATH}:/data
       - ${LOG_DIR:-./logs}/r-service-3:/app/logs
     depends_on:
       nacos:
