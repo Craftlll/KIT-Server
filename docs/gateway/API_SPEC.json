@@ -1,0 +1,347 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "R Plot Service API",
+        "description": "基于 Nacos 服务发现的 R 绘图服务 API，通过 Gateway 提供负载均衡和统一访问入口",
+        "version": "1.2.0",
+        "contact": {
+            "name": "API Support"
+        }
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8080/api/v1",
+            "description": "本地开发环境 (通过 Gateway)"
+        }
+    ],
+    "paths": {
+        "/health": {
+            "get": {
+                "summary": "健康检查",
+                "description": "检查 Gateway 和后端 R 服务的健康状态",
+                "tags": [
+                    "系统"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "服务健康",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "UP",
+                                            "description": "服务状态"
+                                        },
+                                        "instances": {
+                                            "type": "integer",
+                                            "example": 3,
+                                            "description": "可用的 R 服务实例数"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/datasets": {
+            "get": {
+                "summary": "获取数据集列表",
+                "description": "获取所有可用的单细胞数据集",
+                "tags": [
+                    "数据集"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功返回数据集列表",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "datasets": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "example": "NO1",
+                                                        "description": "数据集 ID"
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Dataset NO1",
+                                                        "description": "数据集名称"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "datasets": [
+                                        {
+                                            "id": "NO1",
+                                            "name": "Dataset NO1"
+                                        },
+                                        {
+                                            "id": "NO2",
+                                            "name": "Dataset NO2"
+                                        },
+                                        {
+                                            "id": "NO3",
+                                            "name": "Dataset NO3"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/genes/check": {
+            "get": {
+                "summary": "检查基因是否存在",
+                "description": "检查指定基因在数据集中是否存在",
+                "tags": [
+                    "基因"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "NO1"
+                        },
+                        "description": "数据集 ID"
+                    },
+                    {
+                        "name": "gene",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "GAPDH"
+                        },
+                        "description": "基因名称"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "基因存在",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "found": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "gene": {
+                                            "type": "string",
+                                            "example": "GAPDH",
+                                            "description": "标准化的基因名称"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "数据集不存在",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Dataset ID not found"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "440": {
+                        "description": "基因不存在",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Gene GAPDH not found"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/plots/all": {
+            "get": {
+                "summary": "获取所有图表",
+                "description": "生成并返回指定基因的所有图表路径（包括基因特异性图表和基础图表）",
+                "tags": [
+                    "图表"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "NO1"
+                        },
+                        "description": "数据集 ID"
+                    },
+                    {
+                        "name": "gene",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "GAPDH"
+                        },
+                        "description": "基因名称"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功生成图表",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "gene": {
+                                            "type": "string",
+                                            "example": "GAPDH",
+                                            "description": "基因名称"
+                                        },
+                                        "plots": {
+                                            "type": "array",
+                                            "description": "基因特异性图表的绝对路径数组",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "/data/NO1/lite/cache/GAPDH/feature.png",
+                                                "/data/NO1/lite/cache/GAPDH/dot_anno.png",
+                                                "/data/NO1/lite/cache/GAPDH/heat_anno.png",
+                                                "/data/NO1/lite/cache/GAPDH/dot_cluster.png",
+                                                "/data/NO1/lite/cache/GAPDH/heat_cluster.png"
+                                            ]
+                                        },
+                                        "base_plots": {
+                                            "type": "array",
+                                            "description": "基础图表的绝对路径数组",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "/data/NO1/lite/base/uas.png",
+                                                "/data/NO1/lite/base/ucd45.png",
+                                                "/data/NO1/lite/base/ucta_withanno.png",
+                                                "/data/NO1/lite/base/ucta_noanno.png"
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "数据集不存在"
+                    },
+                    "440": {
+                        "description": "基因不存在"
+                    },
+                    "500": {
+                        "description": "图表生成失败"
+                    }
+                }
+            }
+        },
+        "/plots/types": {
+            "get": {
+                "summary": "获取可用图表类型",
+                "description": "获取指定数据集支持的图表类型列表",
+                "tags": [
+                    "图表"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "NO1"
+                        },
+                        "description": "数据集 ID"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功返回图表类型",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "types": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "feature",
+                                                "dot_anno",
+                                                "heat_anno",
+                                                "dot_cluster",
+                                                "heat_cluster"
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "系统",
+            "description": "系统健康检查和状态"
+        },
+        {
+            "name": "数据集",
+            "description": "数据集管理"
+        },
+        {
+            "name": "基因",
+            "description": "基因查询"
+        },
+        {
+            "name": "图表",
+            "description": "图表生成"
+        }
+    ]
+}

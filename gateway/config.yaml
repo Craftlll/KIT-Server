@@ -1,0 +1,23 @@
+server:
+  port: "8080"
+  mode: "release"
+
+nacos:
+  server_addr: "nacos"
+  server_port: 8848
+  namespace_id: ""
+  group: "DEFAULT_GROUP"
+  service_name: "r-plot-service"
+  timeout_ms: 10000
+
+proxy:
+  timeout_seconds: 30
+  max_idle_conns: 100
+
+static:
+  root_path: "/data"
+  url_prefix: "/static"
+
+log:
+  level: "info"
+  format: "json"

@@ -1,0 +1,137 @@
+services:
+  # Nacos 服务注册中心
+  nacos:
+    image: nacos/nacos-server:v2.3.0-slim
+    platform: linux/amd64
+    pull_policy: never
+    container_name: ${PROJECT_NAME:-r-plot-service}-nacos
+    environment:
+      - MODE=standalone
+      - JVM_XMS=${NACOS_JVM_XMS:-256m}
+      - JVM_XMX=${NACOS_JVM_XMX:-256m}
+    ports:
+      - "${NACOS_PORT:-8848}:8848"
+      - "${NACOS_GRPC_PORT:-9848}:9848"
+    volumes:
+      - ${LOG_DIR:-./logs}/nacos:/home/nacos/logs
+    networks:
+      - ${NETWORK_NAME:-app-net}
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8848/nacos" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # Golang Gateway
+  gateway:
+    build: ./gateway
+    container_name: ${PROJECT_NAME:-r-plot-service}-gateway
+    ports:
+      - "${GATEWAY_PORT:-8080}:8080"
+    environment:
+      - NACOS_SERVER_ADDR=nacos
+      - DATA_PATH=${DATA_PATH}
+    volumes:
+      - ${DATA_PATH}:/data:ro
+    depends_on:
+      nacos:
+        condition: service_healthy
+    networks:
+      - ${NETWORK_NAME:-app-net}
+    deploy:
+      resources:
+        limits:
+          memory: ${GATEWAY_MEMORY_LIMIT:-512m}
+        reservations:
+          memory: ${GATEWAY_MEMORY_RESERVATION:-256m}
+    restart: unless-stopped
+
+  # R 服务实例 1
+  r-service-1:
+    build: ./app
+    container_name: ${PROJECT_NAME:-r-plot-service}-r-1
+    ports:
+      - "${R_SERVICE_START_PORT:-8001}:8000"
+    environment:
+      - SERVICE_NAME=r-plot-service
+      - SERVICE_IP=r-service-1
+      - SERVICE_PORT=8000
+      - NACOS_SERVER=http://nacos:8848
+    volumes:
+      - ${DATA_PATH}:/data:ro
+      - ${LOG_DIR:-./logs}/r-service-1:/app/logs
+    depends_on:
+      nacos:
+        condition: service_healthy
+    networks:
+      - ${NETWORK_NAME:-app-net}
+    deploy:
+      resources:
+        limits:
+          memory: ${R_SERVICE_MEMORY_LIMIT:-2g}
+        reservations:
+          memory: ${R_SERVICE_MEMORY_RESERVATION:-1g}
+    restart: unless-stopped
+
+  # R 服务实例 2
+  r-service-2:
+    build: ./app
+    container_name: ${PROJECT_NAME:-r-plot-service}-r-2
+    ports:
+      - "8002:8000"
+    environment:
+      - SERVICE_NAME=r-plot-service
+      - SERVICE_IP=r-service-2
+      - SERVICE_PORT=8000
+      - NACOS_SERVER=http://nacos:8848
+    volumes:
+      - ${DATA_PATH}:/data:ro
+      - ${LOG_DIR:-./logs}/r-service-2:/app/logs
+    depends_on:
+      nacos:
+        condition: service_healthy
+    networks:
+      - ${NETWORK_NAME:-app-net}
+    deploy:
+      resources:
+        limits:
+          memory: ${R_SERVICE_MEMORY_LIMIT:-2g}
+        reservations:
+          memory: ${R_SERVICE_MEMORY_RESERVATION:-1g}
+    restart: unless-stopped
+
+  # R 服务实例 3
+  r-service-3:
+    build: ./app
+    container_name: ${PROJECT_NAME:-r-plot-service}-r-3
+    ports:
+      - "8003:8000"
+    environment:
+      - SERVICE_NAME=r-plot-service
+      - SERVICE_IP=r-service-3
+      - SERVICE_PORT=8000
+      - NACOS_SERVER=http://nacos:8848
+    volumes:
+      - ${DATA_PATH}:/data:ro
+      - ${LOG_DIR:-./logs}/r-service-3:/app/logs
+    depends_on:
+      nacos:
+        condition: service_healthy
+    networks:
+      - ${NETWORK_NAME:-app-net}
+    deploy:
+      resources:
+        limits:
+          memory: ${R_SERVICE_MEMORY_LIMIT:-2g}
+        reservations:
+          memory: ${R_SERVICE_MEMORY_RESERVATION:-1g}
+    restart: unless-stopped
+
+networks:
+  r-plot-network:
+    name: ${NETWORK_NAME:-app-net}
+    driver: bridge
+
+volumes:
+  nacos-logs:
