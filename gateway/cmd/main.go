@@ -1,10 +1,14 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -109,25 +113,87 @@ func proxyHandler(discovery *nacos.Discovery, cfg *config.Config) gin.HandlerFun
 			req.URL.Scheme = target.Scheme
 			req.URL.Host = target.Host
 
-			// Remove /api/v1 prefix
+			// Logic for path rewriting
 			path := c.Param("path")
-			req.URL.Path = path
+			targetPath := path
+			if path == "/plots/anno" || path == "/plots/noanno" {
+				targetPath = "/plots/all"
+			}
+
+			req.URL.Path = targetPath
 			req.URL.RawQuery = c.Request.URL.RawQuery
 
 			log.Printf("[Gateway] Proxying: %s %s -> %s%s",
 				c.Request.Method,
 				c.Request.URL.Path,
 				target.Host,
-				path,
+				targetPath,
 			)
 		}
 
 		// Modify response for path conversion
+		// Modify response for path conversion and filtering
 		proxy.ModifyResponse = func(resp *http.Response) error {
-			// Only modify /plots/all responses
-			if strings.Contains(c.Request.URL.Path, "/plots/all") {
-				// TODO: Implement path conversion from absolute paths to /static URLs
-				// This will be done in the next iteration
+			path := c.Param("path")
+
+			// Check if we need to filter response
+			if resp.StatusCode == http.StatusOK && (path == "/plots/anno" || path == "/plots/noanno") {
+				bodyBytes, err := io.ReadAll(resp.Body)
+				if err != nil {
+					return err
+				}
+				resp.Body.Close()
+
+				var result map[string]interface{}
+				if err := json.Unmarshal(bodyBytes, &result); err != nil {
+					// Fallback if not JSON
+					resp.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+					return nil
+				}
+
+				// Prevent caching
+				resp.Header.Set("Cache-Control", "no-cache, no-store, must-revalidate")
+				resp.Header.Set("Pragma", "no-cache")
+				resp.Header.Set("Expires", "0")
+
+				// Filter plots
+				filterPaths := func(key string) {
+					if list, ok := result[key].([]interface{}); ok {
+						var newList []string
+						for _, p := range list {
+							if s, ok := p.(string); ok {
+								if path == "/plots/anno" && strings.HasSuffix(s, "noanno.png") {
+									continue
+								}
+								if path == "/plots/noanno" && strings.HasSuffix(s, "withanno.png") {
+									continue
+								}
+								newList = append(newList, s)
+							}
+						}
+						result[key] = newList
+					}
+				}
+
+				filterPaths("plots")
+				filterPaths("base_plots")
+
+				newBody, err := json.Marshal(result)
+				if err != nil {
+					log.Printf("[Gateway] JSON Marshal error: %v", err)
+					return err
+				}
+
+				resp.Body = io.NopCloser(bytes.NewBuffer(newBody))
+				resp.ContentLength = int64(len(newBody))
+				resp.Header.Set("Content-Length", strconv.Itoa(len(newBody)))
+
+				log.Printf("[Gateway] Filtered response for %s. Size: %d", path, len(newBody))
+			} else {
+				// Log why we didn't filter if it looked like we should have
+				if path == "/plots/anno" || path == "/plots/noanno" {
+					log.Printf("[Gateway] Skipping filter. Status: %d", resp.StatusCode)
+				}
 			}
 			return nil
 		}

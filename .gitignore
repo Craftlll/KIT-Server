@@ -8,4 +8,5 @@ logs/
 .DS_Store
 *.log
 
-data/
+/data/
+*.code-workspace

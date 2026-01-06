@@ -130,6 +130,8 @@ http://localhost:8080/api/v1
 | `/datasets` | GET | 获取数据集列表 |
 | `/genes/check` | GET | 检查基因是否存在 |
 | `/plots/all` | GET | 获取所有图表 |
+| `/plots/anno` | GET | 获取带注释的图表 (去除 noanno) |
+| `/plots/noanno` | GET | 获取无注释的图表 (去除 withanno) |
 | `/plots/types` | GET | 获取可用图表类型 |
 
 **详细文档**: 查看 [docs/gateway/API_DOCS.md](docs/gateway/API_DOCS.md)

@@ -226,41 +226,23 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "gene": {
-                                            "type": "string",
-                                            "example": "GAPDH",
-                                            "description": "基因名称"
-                                        },
-                                        "plots": {
-                                            "type": "array",
-                                            "description": "基因特异性图表的绝对路径数组",
-                                            "items": {
-                                                "type": "string"
-                                            },
-                                            "example": [
-                                                "/data/NO1/lite/cache/GAPDH/feature.png",
-                                                "/data/NO1/lite/cache/GAPDH/dot_anno.png",
-                                                "/data/NO1/lite/cache/GAPDH/heat_anno.png",
-                                                "/data/NO1/lite/cache/GAPDH/dot_cluster.png",
-                                                "/data/NO1/lite/cache/GAPDH/heat_cluster.png"
-                                            ]
-                                        },
-                                        "base_plots": {
-                                            "type": "array",
-                                            "description": "基础图表的绝对路径数组",
-                                            "items": {
-                                                "type": "string"
-                                            },
-                                            "example": [
-                                                "/data/NO1/lite/base/uas.png",
-                                                "/data/NO1/lite/base/ucd45.png",
-                                                "/data/NO1/lite/base/ucta_withanno.png",
-                                                "/data/NO1/lite/base/ucta_noanno.png"
-                                            ]
-                                        }
-                                    }
+                                    "$ref": "#/components/schemas/PlotResponse"
+                                },
+                                "example": {
+                                    "gene": "GAPDH",
+                                    "plots": [
+                                        "/data/NO1/lite/cache/GAPDH/feature.png",
+                                        "/data/NO1/lite/cache/GAPDH/dot_withanno.png",
+                                        "/data/NO1/lite/cache/GAPDH/heat_withanno.png",
+                                        "/data/NO1/lite/cache/GAPDH/dot_noanno.png",
+                                        "/data/NO1/lite/cache/GAPDH/heat_noanno.png"
+                                    ],
+                                    "base_plots": [
+                                        "/data/NO1/lite/base/uas.png",
+                                        "/data/NO1/lite/base/ucd45.png",
+                                        "/data/NO1/lite/base/ucta_withanno.png",
+                                        "/data/NO1/lite/base/ucta_noanno.png"
+                                    ]
                                 }
                             }
                         }
@@ -273,6 +255,114 @@
                     },
                     "500": {
                         "description": "图表生成失败"
+                    }
+                }
+            }
+        },
+        "/plots/anno": {
+            "get": {
+                "summary": "获取带注释图表",
+                "description": "获取指定基因的图表，自动过滤掉无注释(noanno)的相关图表",
+                "tags": [
+                    "图表"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "NO1"
+                        }
+                    },
+                    {
+                        "name": "gene",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "GAPDH"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功返回过滤后的图表",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PlotResponse"
+                                },
+                                "example": {
+                                    "gene": "GAPDH",
+                                    "plots": [
+                                        "/data/NO1/lite/cache/GAPDH/feature.png",
+                                        "/data/NO1/lite/cache/GAPDH/dot_withanno.png",
+                                        "/data/NO1/lite/cache/GAPDH/heat_withanno.png"
+                                    ],
+                                    "base_plots": [
+                                        "/data/NO1/lite/base/uas.png",
+                                        "/data/NO1/lite/base/ucd45.png",
+                                        "/data/NO1/lite/base/ucta_withanno.png"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/plots/noanno": {
+            "get": {
+                "summary": "获取无注释图表",
+                "description": "获取指定基因的图表，自动过滤掉带注释(withanno)的相关图表",
+                "tags": [
+                    "图表"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "NO1"
+                        }
+                    },
+                    {
+                        "name": "gene",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "GAPDH"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功返回过滤后的图表",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PlotResponse"
+                                },
+                                "example": {
+                                    "gene": "GAPDH",
+                                    "plots": [
+                                        "/data/NO1/lite/cache/GAPDH/feature.png",
+                                        "/data/NO1/lite/cache/GAPDH/dot_noanno.png",
+                                        "/data/NO1/lite/cache/GAPDH/heat_noanno.png"
+                                    ],
+                                    "base_plots": [
+                                        "/data/NO1/lite/base/uas.png",
+                                        "/data/NO1/lite/base/ucd45.png",
+                                        "/data/NO1/lite/base/ucta_noanno.png"
+                                    ]
+                                }
+                            }
+                        }
                     }
                 }
             }

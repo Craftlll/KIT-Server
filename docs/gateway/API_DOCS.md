@@ -157,10 +157,10 @@ curl "http://localhost:8080/api/v1/plots/all?id=NO1&gene=GAPDH"
   "gene": "GAPDH",
   "plots": [
     "/data/NO1/lite/cache/GAPDH/feature.png",
-    "/data/NO1/lite/cache/GAPDH/dot_anno.png",
-    "/data/NO1/lite/cache/GAPDH/heat_anno.png",
-    "/data/NO1/lite/cache/GAPDH/dot_cluster.png",
-    "/data/NO1/lite/cache/GAPDH/heat_cluster.png"
+    "/data/NO1/lite/cache/GAPDH/dot_withanno.png",
+    "/data/NO1/lite/cache/GAPDH/heat_withanno.png",
+    "/data/NO1/lite/cache/GAPDH/dot_noanno.png",
+    "/data/NO1/lite/cache/GAPDH/heat_noanno.png"
   ],
   "base_plots": [
     "/data/NO1/lite/base/uas.png",
@@ -182,10 +182,10 @@ curl "http://localhost:8080/api/v1/plots/all?id=NO1&gene=GAPDH"
 
 **基因特异性图表** (plots):
 - `feature.png`: 特征图 (UMAP 上的基因表达)
-- `dot_anno.png`: 点图 (按细胞类型注释)
-- `heat_anno.png`: 热图 (按细胞类型注释)
-- `dot_cluster.png`: 点图 (按聚类)
-- `heat_cluster.png`: 热图 (按聚类)
+- `dot_withanno.png`: 点图 (按细胞类型注释)
+- `heat_withanno.png`: 热图 (按细胞类型注释)
+- `dot_noanno.png`: 点图 (按聚类/无注释)
+- `heat_noanno.png`: 热图 (按聚类/无注释)
 
 **基础图表** (base_plots):
 - `uas.png`: UMAP 按样本着色
