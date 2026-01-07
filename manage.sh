@@ -106,10 +106,24 @@ check_config() {
     fi
 }
 
+# 检测 docker compose 命令
+detect_compose_cmd() {
+    if docker compose version >/dev/null 2>&1; then
+        COMPOSE_CMD="docker compose"
+    elif command -v docker-compose >/dev/null 2>&1; then
+        COMPOSE_CMD="docker-compose"
+    else
+        print_error "未找到 docker compose 或 docker-compose 命令"
+        exit 1
+    fi
+}
+
 # 启动服务
 start_service() {
+    detect_compose_cmd
+    print_info "使用命令: $COMPOSE_CMD"
     print_info "启动所有服务..."
-    docker-compose up -d
+    $COMPOSE_CMD up -d
     print_success "服务已启动"
     sleep 5
     show_status
@@ -121,8 +135,9 @@ start_dev() {
     check_docker
     check_config
     
-    docker-compose down 2>/dev/null || true
-    docker-compose up -d
+    detect_compose_cmd
+    $COMPOSE_CMD down 2>/dev/null || true
+    $COMPOSE_CMD up -d
     
     print_info "等待服务启动..."
     sleep 15
@@ -139,37 +154,40 @@ start_prod() {
 
 # 停止服务
 stop_service() {
+    detect_compose_cmd
     if [ -z "$1" ]; then
         print_info "停止所有服务..."
-        docker-compose down
+        $COMPOSE_CMD down
         print_success "所有服务已停止"
     else
         print_info "停止服务: $1"
-        docker-compose stop "$1"
+        $COMPOSE_CMD stop "$1"
         print_success "服务 $1 已停止"
     fi
 }
 
 # 重启服务
 restart_service() {
+    detect_compose_cmd
     if [ -z "$1" ]; then
         print_info "重启所有服务..."
-        docker-compose restart
+        $COMPOSE_CMD restart
         print_success "所有服务已重启"
         sleep 5
         show_status
     else
         print_info "重启服务: $1"
-        docker-compose restart "$1"
+        $COMPOSE_CMD restart "$1"
         print_success "服务 $1 已重启"
     fi
 }
 
 # 查看状态
 show_status() {
+    detect_compose_cmd
     print_info "服务状态:"
     echo ""
-    docker-compose ps
+    $COMPOSE_CMD ps
 }
 
 # 健康检查
@@ -208,12 +226,13 @@ show_health() {
 
 # 查看日志
 show_logs() {
+    detect_compose_cmd
     if [ -z "$1" ]; then
         print_info "查看所有日志 (Ctrl+C 退出):"
-        docker-compose logs -f
+        $COMPOSE_CMD logs -f
     else
         print_info "查看服务日志: $1 (Ctrl+C 退出)"
-        docker-compose logs -f "$1"
+        $COMPOSE_CMD logs -f "$1"
     fi
 }
 
@@ -229,10 +248,11 @@ update_service() {
     
     # 重新构建并启动
     print_info "重新构建镜像..."
-    docker-compose build
+    detect_compose_cmd
+    $COMPOSE_CMD build
     
     print_info "重新启动服务..."
-    docker-compose up -d
+    $COMPOSE_CMD up -d
     
     print_success "更新完成"
     sleep 5
@@ -241,16 +261,17 @@ update_service() {
 
 # 重新构建
 rebuild_service() {
+    detect_compose_cmd
     if [ -z "$1" ]; then
         print_info "重新构建所有镜像..."
-        docker-compose build --no-cache
+        $COMPOSE_CMD build --no-cache
         print_info "重新启动服务..."
-        docker-compose up -d
+        $COMPOSE_CMD up -d
         print_success "重新构建完成"
     else
         print_info "重新构建服务: $1"
-        docker-compose build --no-cache "$1"
-        docker-compose up -d "$1"
+        $COMPOSE_CMD build --no-cache "$1"
+        $COMPOSE_CMD up -d "$1"
         print_success "服务 $1 重新构建完成"
     fi
 }
@@ -258,7 +279,8 @@ rebuild_service() {
 # 清理
 clean_service() {
     print_info "停止并删除容器..."
-    docker-compose down
+    detect_compose_cmd
+    $COMPOSE_CMD down
     print_success "清理完成"
 }
 
@@ -268,7 +290,8 @@ clean_all() {
     read -p "确认继续? (y/n): " confirm
     if [[ $confirm =~ ^[Yy]$ ]]; then
         print_info "停止并删除容器和数据卷..."
-        docker-compose down -v
+        detect_compose_cmd
+        $COMPOSE_CMD down -v
         print_success "完全清理完成"
     else
         print_info "已取消"

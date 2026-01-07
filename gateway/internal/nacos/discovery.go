@@ -58,7 +58,7 @@ func NewDiscovery(serverAddr string, serverPort uint64, serviceName, group strin
 
 	// Initial instance refresh
 	if err := d.refreshInstances(); err != nil {
-		return nil, fmt.Errorf("failed to refresh instances: %w", err)
+		log.Printf("[Nacos] Warning: Failed to refresh instances on startup: %v", err)
 	}
 
 	// Subscribe to service changes

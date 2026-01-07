@@ -61,6 +61,21 @@ detect_os() {
     fi
 }
 
+# 检测 docker compose 命令
+detect_compose_cmd() {
+    if docker compose version >/dev/null 2>&1; then
+        COMPOSE_CMD="docker compose"
+        print_success "发现 Docker Compose Plugin (v2)"
+    elif command -v docker-compose >/dev/null 2>&1; then
+        COMPOSE_CMD="docker-compose"
+        print_success "发现 Docker Compose (v1)"
+    else
+        print_warning "未找到 Docker Compose，尝试安装..."
+        return 1
+    fi
+    return 0
+}
+
 # 检查 Docker
 check_docker() {
     print_info "检查 Docker..."
@@ -75,14 +90,16 @@ check_docker() {
     
     # 检查 Docker 是否运行
     if ! docker info &> /dev/null; then
-        print_error "Docker 未运行，请启动 Docker"
+        print_warning "Docker 未运行，尝试启动..."
         if [[ "$OS" == "linux" ]]; then
-            print_info "尝试启动 Docker 服务..."
-            sudo systemctl start docker
-            sudo systemctl enable docker
-        else
-            print_error "请手动启动 Docker Desktop"
-            exit 1
+            sudo systemctl start docker || true
+            sudo systemctl enable docker || true
+            sleep 3
+        fi
+        
+        if ! docker info &> /dev/null; then
+             print_error "无法启动 Docker，请手动启动"
+             exit 1
         fi
     fi
 }
@@ -92,78 +109,65 @@ install_docker() {
     if [[ "$OS" == "linux" ]]; then
         print_info "在 Linux 上安装 Docker..."
         
-        # 更新包索引
+        # 移除旧版本
+        sudo apt-get remove -y docker docker-engine docker.io containerd runc 2>/dev/null || true
+        
+        # 更新并安装依赖
         sudo apt-get update -y
+        sudo apt-get install -y ca-certificates curl gnupg
         
-        # 安装依赖
-        sudo apt-get install -y \
-            ca-certificates \
-            curl \
-            gnupg \
-            lsb-release
-        
-        # 添加 Docker 官方 GPG key
-        sudo mkdir -p /etc/apt/keyrings
-        curl -fsSL https://download.docker.com/linux/$DISTRO/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-        
-        # 设置仓库
+        # 添加官方 GPG Key
+        sudo install -m 0755 -d /etc/apt/keyrings
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+        sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+        # 设置仓库 source
+        # 注意: 使用 ubuntu 作为 distro, 即便是在 derivative 系统上也通常兼容
         echo \
-          "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO \
-          $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-        
-        # 安装 Docker Engine
+          "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+          $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+          sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+          
+        # 安装 Docker Engine 和 Compose Plugin
         sudo apt-get update -y
         sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
         
-        # 启动 Docker
+        # 启动
         sudo systemctl start docker
         sudo systemctl enable docker
         
-        # 添加当前用户到 docker 组
-        sudo usermod -aG docker $USER
+        # 用户组
+        if ! groups $USER | grep -q docker; then
+            sudo usermod -aG docker $USER
+            print_warning "已将用户添加到 docker 组，可能需要重新登录才能生效"
+        fi
         
         print_success "Docker 安装完成"
-        print_warning "请注销并重新登录以使 docker 组权限生效"
         
     elif [[ "$OS" == "macos" ]]; then
-        print_error "请手动安装 Docker Desktop for Mac"
-        print_info "下载地址: https://www.docker.com/products/docker-desktop"
+        print_error "MacOS 请手动安装 Docker Desktop"
         exit 1
     fi
 }
 
-# 检查 Docker Compose
+# 检查并安装 Compose
 check_docker_compose() {
     print_info "检查 Docker Compose..."
     
-    if ! command -v docker-compose &> /dev/null; then
-        if docker compose version &> /dev/null; then
-            print_success "Docker Compose (plugin) 已安装"
-            # 创建 docker-compose 别名
-            echo 'alias docker-compose="docker compose"' >> ~/.bashrc
-        else
-            print_warning "Docker Compose 未安装，开始安装..."
-            install_docker_compose
+    if ! detect_compose_cmd; then
+        # 如果检测失败，尝试安装插件
+        if [[ "$OS" == "linux" ]]; then
+            print_info "尝试安装 docker-compose-plugin..."
+            sudo apt-get update -y
+            sudo apt-get install -y docker-compose-plugin
+            
+            if detect_compose_cmd; then
+                print_success "Docker Compose Plugin 安装成功"
+                return
+            fi
         fi
-    else
-        COMPOSE_VERSION=$(docker-compose --version)
-        print_success "Docker Compose 已安装: $COMPOSE_VERSION"
-    fi
-}
-
-# 安装 Docker Compose
-install_docker_compose() {
-    if [[ "$OS" == "linux" ]]; then
-        print_info "安装 Docker Compose..."
-        
-        # 下载最新版本
-        COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
-        sudo curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-        
-        # 添加执行权限
-        sudo chmod +x /usr/local/bin/docker-compose
-        
-        print_success "Docker Compose 安装完成"
+        print_error "Docker Compose 安装失败，请手动安装"
+        exit 1
     fi
 }
 
@@ -250,7 +254,7 @@ check_ports() {
 build_images() {
     print_info "构建 Docker 镜像..."
     
-    docker-compose build --no-cache
+    $COMPOSE_CMD build --no-cache
     
     print_success "镜像构建完成"
 }
@@ -260,10 +264,10 @@ start_services() {
     print_info "启动服务..."
     
     # 停止旧服务
-    docker-compose down 2>/dev/null || true
+    $COMPOSE_CMD down 2>/dev/null || true
     
     # 启动新服务
-    docker-compose up -d
+    $COMPOSE_CMD up -d
     
     print_info "等待服务启动..."
     sleep 10
@@ -277,7 +281,7 @@ verify_deployment() {
     
     # 检查容器状态
     print_info "检查容器状态..."
-    docker-compose ps
+    $COMPOSE_CMD ps
     
     # 等待服务就绪
     print_info "等待服务就绪 (30秒)..."
@@ -338,10 +342,11 @@ show_deployment_info() {
     echo -e "  ${LOG_DIR:-./logs}"
     echo ""
     echo -e "${BLUE}常用命令:${NC}"
-    echo -e "  查看状态:  ${YELLOW}docker-compose ps${NC}"
-    echo -e "  查看日志:  ${YELLOW}docker-compose logs -f${NC}"
-    echo -e "  重启服务:  ${YELLOW}docker-compose restart${NC}"
-    echo -e "  停止服务:  ${YELLOW}docker-compose down${NC}"
+    echo -e "  推荐使用 manage.sh 管理服务:"
+    echo -e "  查看状态:  ${YELLOW}./manage.sh status${NC}"
+    echo -e "  查看日志:  ${YELLOW}./manage.sh logs${NC}"
+    echo -e "  重启服务:  ${YELLOW}./manage.sh restart${NC}"
+    echo -e "  停止服务:  ${YELLOW}./manage.sh stop${NC}"
     echo ""
 }
 
@@ -364,8 +369,9 @@ main() {
         
         # 直接部署
         print_info "开始快速部署..."
-        docker-compose down 2>/dev/null || true
-        docker-compose up -d
+        detect_compose_cmd
+        $COMPOSE_CMD down 2>/dev/null || true
+        $COMPOSE_CMD up -d
         
         sleep 15
         verify_deployment
